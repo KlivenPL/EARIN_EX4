@@ -25,4 +25,7 @@ class PawnDisplay : MonoBehaviour {
 
     public Pawn Pawn => Gameplay.Instance.Checkboard[(int)transform.position.x, (int)transform.position.y];
 
+    public void TakeDown() {
+        Destroy(gameObject);
+    }
 }

@@ -69,7 +69,10 @@ namespace Assets.Source.Game.Checkboards {
         }
 
         public void MakeMove(Move move) {
-            move.PawnPos = move.NewPos;
+            var pawn = this[move.PawnPos];
+            pawn.Position = move.NewPos;
+            this[move.NewPos] = pawn;
+            this[move.PawnPos] = null;
             if (move.IsATake) {
                 this[move.TakePos.Value] = null;
             }

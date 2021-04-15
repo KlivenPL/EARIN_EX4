@@ -68,7 +68,7 @@ namespace Assets.Source.Game.Pawns {
                 !checkboard.IsEmptyAndExists(takePos) &&
                 checkboard[takePos].Color != Color &&
                 checkboard.IsEmptyAndExists(posAfterTake)) {
-                move = new Move { NewPos = posAfterTake, PawnPos = Position };
+                move = new Move { NewPos = posAfterTake, PawnPos = Position, TakePos = takePos };
                 return true;
             }
 

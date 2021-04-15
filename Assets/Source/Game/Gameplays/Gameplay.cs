@@ -26,6 +26,14 @@ class Gameplay : MonoBehaviour {
 
         whitePlayer = new HumanPlayer(GameColor.White, checkboardDisplay);
         blackPlayer = new HumanPlayer(GameColor.Black, checkboardDisplay);
+
+        whitePlayer.SingleMoveMadeEvent += OnPlayerSingleMoveMade;
+        whitePlayer.TurnFinishedEvent += OnTurnFinished;
+
+        blackPlayer.SingleMoveMadeEvent += OnPlayerSingleMoveMade;
+        blackPlayer.TurnFinishedEvent += OnTurnFinished;
+
+        whitePlayer.MoveInit();
     }
 
     private void Update() {
@@ -33,6 +41,21 @@ class Gameplay : MonoBehaviour {
             whitePlayer.MoveUpdate();
         } else {
             blackPlayer.MoveUpdate();
+        }
+    }
+
+    private void OnPlayerSingleMoveMade(object sender, Move move) {
+        checkboardDisplay.MakeMove(move);
+        Checkboard.MakeMove(move);
+    }
+
+    private void OnTurnFinished(object sender, System.EventArgs e) {
+        if (TurnColor == GameColor.White) {
+            TurnColor = GameColor.Black;
+            blackPlayer.MoveInit();
+        } else {
+            TurnColor = GameColor.White;
+            whitePlayer.MoveInit();
         }
     }
 }
