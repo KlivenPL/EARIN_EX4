@@ -30,7 +30,17 @@ class CheckboardDisplay : MonoBehaviour {
     }
 
     public void MakeMove(Move move) {
-        GetPawnDisplay(move.PawnPos).transform.position = move.NewPos.ToVector2();
+        var pawnDisplay = GetPawnDisplay(move.PawnPos);
+        var pawn = pawnDisplay.Pawn;
+
+        pawnDisplay.transform.position = move.NewPos.ToVector2();
+
+        if (move.NewPos.y == 0 && Gameplay.Instance.LowerPawnsColor != pawn.Color ||
+                move.NewPos.y == 7 && Gameplay.Instance.LowerPawnsColor == pawn.Color) {
+
+            pawnDisplay.SetKing();
+        }
+
         if (move.IsATake) {
             var takenPawn = GetPawnDisplay(move.TakePos.Value, tryGet: true);
             pawns.Remove(takenPawn);

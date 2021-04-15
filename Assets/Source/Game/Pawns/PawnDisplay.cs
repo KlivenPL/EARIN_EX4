@@ -6,6 +6,9 @@ class PawnDisplay : MonoBehaviour {
     [SerializeField] private SpriteRenderer sr;
 
     private GameColor color;
+    private bool isKing;
+
+    public bool IsKing => isKing;
 
     public void Select() {
         sr.color = Color.cyan;
@@ -24,6 +27,11 @@ class PawnDisplay : MonoBehaviour {
     }
 
     public Pawn Pawn => Gameplay.Instance.Checkboard[(int)transform.position.x, (int)transform.position.y];
+
+    public void SetKing() {
+        sr.transform.Find("Crown").gameObject.SetActive(true);
+        isKing = true;
+    }
 
     public void TakeDown() {
         Destroy(gameObject);

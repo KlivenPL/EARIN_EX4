@@ -73,6 +73,13 @@ namespace Assets.Source.Game.Checkboards {
             pawn.Position = move.NewPos;
             this[move.NewPos] = pawn;
             this[move.PawnPos] = null;
+
+            if (pawn.Position.y == 0 && Gameplay.Instance.LowerPawnsColor != pawn.Color ||
+                pawn.Position.y == 7 && Gameplay.Instance.LowerPawnsColor == pawn.Color) {
+
+                pawn.IsKing = true;
+            }
+
             if (move.IsATake) {
                 this[move.TakePos.Value] = null;
             }
