@@ -27,14 +27,14 @@ namespace Assets.Source.Game.Pawns {
         public Vector2Int Position { get; set; }
 
         public IEnumerable<Move> GetAvailableMoves(Checkboard checkboard) {
-            var availableTakes = GetAvailableTakes(checkboard);
+            var availableTakes = IsKing ? GetAvailableKingTakes(checkboard) : GetAvailableTakes(checkboard);
             if (availableTakes?.Any() == true) {
-                return availableTakes;
+                return availableTakes.ToList();
             }
 
-            var normalMoves = GetAvailableNormalMoves(checkboard);
+            var normalMoves = IsKing ? GetAvailableNormalKingMoves(checkboard) : GetAvailableNormalMoves(checkboard);
             if (normalMoves?.Any() == true) {
-                return normalMoves;
+                return normalMoves.ToList();
             }
 
             return null;
@@ -62,6 +62,25 @@ namespace Assets.Source.Game.Pawns {
             }
         }
 
+        private IEnumerable<Move> GetAvailableKingTakes(Checkboard checkboard) {
+
+            foreach (var move in CheckKingTakes(Position, Vector2IntExtensions.MoveRD, checkboard)) {
+                yield return move;
+            }
+
+            foreach (var move in CheckKingTakes(Position, Vector2IntExtensions.MoveLD, checkboard)) {
+                yield return move;
+            }
+
+            foreach (var move in CheckKingTakes(Position, Vector2IntExtensions.MoveRU, checkboard)) {
+                yield return move;
+            }
+
+            foreach (var move in CheckKingTakes(Position, Vector2IntExtensions.MoveLU, checkboard)) {
+                yield return move;
+            }
+        }
+
         private bool CheckTake(Vector2Int takePos, Vector2Int posAfterTake, Checkboard checkboard, out Move move) {
             move = null;
             if (checkboard.Exists(takePos) &&
@@ -75,32 +94,79 @@ namespace Assets.Source.Game.Pawns {
             return false;
         }
 
-        private IEnumerable<Move> GetAvailableNormalMoves(Checkboard checkboard) {
-            List<Move> availableMoves = new List<Move>();
+        private IEnumerable<Move> CheckKingTakes(Vector2Int startPos, System.Func<Vector2Int, Vector2Int> moveFunc, Checkboard checkboard) {
+            var checkPos = startPos;
+            var prevPos = startPos;
+            while (checkboard.Exists(checkPos)) {
+                checkPos = moveFunc(checkPos);
+                var posAfterTake = moveFunc(checkPos);
 
+                if (!(checkboard.IsEmptyAndExists(prevPos) || checkboard[prevPos].Position == startPos)) {
+                    yield break;
+                }
+
+                if (CheckTake(checkPos, posAfterTake, checkboard, out var move)) {
+                    yield return move;
+                    var endPos = moveFunc(move.NewPos);
+
+                    while (checkboard.IsEmptyAndExists(endPos)) {
+                        yield return new Move {
+                            NewPos = endPos,
+                            PawnPos = move.PawnPos,
+                            TakePos = move.TakePos,
+                        };
+
+                        endPos = moveFunc(endPos);
+                    }
+
+                    yield break;
+                }
+                prevPos = moveFunc(prevPos);
+            }
+        }
+
+        private IEnumerable<Move> GetAvailableNormalMoves(Checkboard checkboard) {
             if (Gameplay.Instance.LowerPawnsColor == Color) {
                 var ru = Position.MoveRU();
                 if (CheckNormalMove(ru, checkboard, out Move moveRu)) {
-                    availableMoves.Add(moveRu);
+                    yield return moveRu;
                 }
 
                 var lu = Position.MoveLU();
                 if (CheckNormalMove(lu, checkboard, out Move moveLu)) {
-                    availableMoves.Add(moveLu);
+                    yield return moveLu;
                 }
+
             } else {
+
                 var rd = Position.MoveRD();
                 if (CheckNormalMove(rd, checkboard, out Move moveRd)) {
-                    availableMoves.Add(moveRd);
+                    yield return moveRd;
                 }
 
                 var ld = Position.MoveLD();
                 if (CheckNormalMove(ld, checkboard, out Move moveLd)) {
-                    availableMoves.Add(moveLd);
+                    yield return moveLd;
                 }
             }
+        }
 
-            return availableMoves.Any() ? availableMoves : null;
+        private IEnumerable<Move> GetAvailableNormalKingMoves(Checkboard checkboard) {
+            foreach (var move in CheckKingMoves(Position, Vector2IntExtensions.MoveRD, checkboard)) {
+                yield return move;
+            }
+
+            foreach (var move in CheckKingMoves(Position, Vector2IntExtensions.MoveLD, checkboard)) {
+                yield return move;
+            }
+
+            foreach (var move in CheckKingMoves(Position, Vector2IntExtensions.MoveRU, checkboard)) {
+                yield return move;
+            }
+
+            foreach (var move in CheckKingMoves(Position, Vector2IntExtensions.MoveLU, checkboard)) {
+                yield return move;
+            }
         }
 
         private bool CheckNormalMove(Vector2Int movePos, Checkboard checkboard, out Move move) {
@@ -111,6 +177,18 @@ namespace Assets.Source.Game.Pawns {
             }
 
             return false;
+        }
+
+        private IEnumerable<Move> CheckKingMoves(Vector2Int startPos, System.Func<Vector2Int, Vector2Int> moveFunc, Checkboard checkboard) {
+            var checkPos = moveFunc(startPos);
+            while (checkboard.IsEmptyAndExists(checkPos)) {
+                yield return new Move {
+                    NewPos = checkPos,
+                    PawnPos = startPos,
+                };
+
+                checkPos = moveFunc(checkPos);
+            }
         }
     }
 }

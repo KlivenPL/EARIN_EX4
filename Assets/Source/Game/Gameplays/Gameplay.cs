@@ -34,6 +34,14 @@ class Gameplay : MonoBehaviour {
         blackPlayer.TurnFinishedEvent += OnTurnFinished;
 
         whitePlayer.MoveInit();
+
+        var whiteKing = Checkboard[0, 2];
+        whiteKing.IsKing = true;
+        checkboardDisplay.GetPawnDisplay(whiteKing.Position).SetKing();
+
+        var blackKing = Checkboard[7, 5];
+        blackKing.IsKing = true;
+        checkboardDisplay.GetPawnDisplay(blackKing.Position).SetKing();
     }
 
     private void Update() {
