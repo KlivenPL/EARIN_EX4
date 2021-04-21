@@ -24,8 +24,9 @@ class Gameplay : MonoBehaviour {
         var pawns = checkboardDisplay.Init();
         Checkboard = new Checkboard(pawns);
 
-        whitePlayer = new HumanPlayer(GameColor.White, checkboardDisplay);
-        blackPlayer = new HumanPlayer(GameColor.Black, checkboardDisplay);
+        //whitePlayer = new HumanPlayer(GameColor.White, checkboardDisplay);
+        whitePlayer = new BotPlayer(GameColor.White, 6);
+        blackPlayer = new BotPlayer(GameColor.Black, 4);
 
         whitePlayer.SingleMoveMadeEvent += OnPlayerSingleMoveMade;
         whitePlayer.TurnFinishedEvent += OnTurnFinished;
@@ -35,13 +36,13 @@ class Gameplay : MonoBehaviour {
 
         whitePlayer.MoveInit();
 
-        var whiteKing = Checkboard[0, 2];
+        /*var whiteKing = Checkboard[0, 2];
         whiteKing.IsKing = true;
         checkboardDisplay.GetPawnDisplay(whiteKing.Position).SetKing();
 
         var blackKing = Checkboard[7, 5];
         blackKing.IsKing = true;
-        checkboardDisplay.GetPawnDisplay(blackKing.Position).SetKing();
+        checkboardDisplay.GetPawnDisplay(blackKing.Position).SetKing();*/
     }
 
     private void Update() {

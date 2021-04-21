@@ -18,7 +18,7 @@ namespace Assets.Source.Game.Pawns {
             return new Pawn {
                 Color = original.Color,
                 IsKing = original.IsKing,
-                Position = original.Position
+                Position = original.Position,
             };
         }
 
