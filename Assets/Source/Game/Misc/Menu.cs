@@ -64,6 +64,7 @@ class Menu : MonoBehaviour {
         escMenu.gameObject.SetActive(false);
         winTxt.gameObject.SetActive(false);
         SceneManager.LoadScene("Menu");
+        Destroy(gameObject);
     }
 
     public void OnRestartButtonClick() {
