@@ -1,4 +1,5 @@
-﻿using Assets.Source.Game.Gameplays;
+﻿using Assets.KLib.Source.Utils.Rotation;
+using Assets.Source.Game.Gameplays;
 using Assets.Source.Game.Misc;
 using Assets.Source.Game.Pawns;
 using System.Collections;
@@ -40,11 +41,16 @@ class CheckboardDisplay : MonoBehaviour {
 
         var newPos = move.NewPos.ToVector2();
 
-        while (Vector2.Distance(pawnDisplay.transform.position, newPos) > 0.1f) {
-            pawnDisplay.transform.position = Vector2.MoveTowards(pawnDisplay.transform.position, newPos, 3f * Time.deltaTime);
+        pawnDisplay.MoveToFront();
+
+        var movementCoroutine = MovementCoroutines.KMove(pawnDisplay.transform.position, newPos, 0.5f);
+
+        foreach (var pos in movementCoroutine) {
+            pawnDisplay.transform.position = pos;
             yield return new WaitForEndOfFrame();
         }
 
+        pawnDisplay.MoveToBack();
         pawnDisplay.transform.position = newPos;
 
         if (move.NewPos.y == 0 && Gameplay.Instance.LowerPawnsColor != pawn.Color ||

@@ -13,7 +13,7 @@ class FieldDisplay : MonoBehaviour {
     }
 
     public void Select() {
-        sr.color = Color.yellow;
+        sr.color = fieldColor.ToPawnColor() + (Color.white / 3f);
     }
 
     public void Deselect() {

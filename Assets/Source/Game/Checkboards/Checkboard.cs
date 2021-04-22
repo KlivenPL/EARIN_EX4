@@ -110,12 +110,12 @@ namespace Assets.Source.Game.Checkboards {
         public bool IsTerminal(out GameColor winColor) {
             winColor = default;
 
-            if (GetPawns(GameColor.Black)?.Any() != true) {
+            if (GetPawns(GameColor.Black)?.All(p => p.GetAvailableMoves(this)?.Any() != true) != false) {
                 winColor = GameColor.White;
                 return true;
             }
 
-            if (GetPawns(GameColor.White)?.Any() != true) {
+            if (GetPawns(GameColor.White)?.All(p => p.GetAvailableMoves(this)?.Any() != true) != false) {
                 winColor = GameColor.Black;
                 return true;
             }

@@ -11,7 +11,7 @@ class PawnDisplay : MonoBehaviour {
     public bool IsKing => isKing;
 
     public void Select() {
-        sr.color = Color.cyan;
+        sr.color = color.ToPawnColor() - (Color.blue / 4f);
     }
 
     public void Deselect() {
@@ -35,5 +35,15 @@ class PawnDisplay : MonoBehaviour {
 
     public void TakeDown() {
         Destroy(gameObject);
+    }
+
+    public void MoveToFront() {
+        sr.sortingOrder = 10;
+        sr.transform.Find("Crown").GetComponent<SpriteRenderer>().sortingOrder = 11;
+    }
+
+    public void MoveToBack() {
+        sr.sortingOrder = default;
+        sr.transform.Find("Crown").GetComponent<SpriteRenderer>().sortingOrder = 1;
     }
 }

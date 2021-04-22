@@ -4,19 +4,19 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Assets.Source.Game.Gameplays {
     class BotPlayer : IPlayer {
         public event EventHandler<Move> SingleMoveMadeEvent;
         public event EventHandler TurnFinishedEvent;
 
-        private int Depth;
-
+        private readonly int depth;
         private readonly GameColor pawnColor;
 
         public BotPlayer(GameColor pawnColor, int depth) {
             this.pawnColor = pawnColor;
-            Depth = depth;
+            this.depth = depth;
         }
 
         public void MoveInit() {
@@ -29,23 +29,24 @@ namespace Assets.Source.Game.Gameplays {
             Pawn movingPawn = null;
 
             do {
-                yield return null;
-                //yield return new WaitForSeconds(1f);
                 var availableMoves = new List<(Move move, int heuristic)>();
-                var alfaBeta = AlfaBeta(state, Depth, int.MinValue, int.MaxValue, true, ref availableMoves);
+                yield return new WaitForSeconds(0.25f);
+                var alfaBeta = AlfaBeta(state, depth, int.MinValue, int.MaxValue, true, ref availableMoves);
                 Move move = null;
 
                 var moves = availableMoves
                     .Where(m => m.heuristic == alfaBeta);
 
                 if (movingPawn != null) {
-                    move = moves.First(m => m.move.PawnPos == movingPawn.Position).move;
+                    move = moves.First(m => m.move.PawnPos == movingPawn.Position).move ?? moves.First().move;
                 } else {
                     move = moves.First().move;
                 }
 
                 isTake = move.IsATake;
                 movingPawn = Gameplay.Instance.Checkboard[move.PawnPos];
+
+                yield return new WaitForSeconds(0.25f);
                 SingleMoveMadeEvent(this, move);
 
                 while (Gameplay.Instance.IsPawnInMove)
@@ -79,7 +80,7 @@ namespace Assets.Source.Game.Gameplays {
                     value = Math.Max(value, AlfaBeta(successor, depth - 1, alfa, beta, maxMove: successor.IsInTakeStrike, ref moves));
                     alfa = Math.Max(alfa, value);
 
-                    if (depth == Depth) {
+                    if (depth == this.depth) {
                         moves.Add((successor.LastMove, value));
                     }
 
@@ -95,7 +96,7 @@ namespace Assets.Source.Game.Gameplays {
                     value = Math.Min(value, AlfaBeta(successor, depth - 1, alfa, beta, maxMove: !successor.IsInTakeStrike, ref moves));
                     beta = Math.Min(beta, value);
 
-                    if (depth == Depth) {
+                    if (depth == this.depth) {
                         moves.Add((successor.LastMove, value));
                     }
 

@@ -27,9 +27,13 @@ class Gameplay : MonoBehaviour {
         var pawns = checkboardDisplay.Init();
         Checkboard = new Checkboard(pawns);
 
-        whitePlayer = new HumanPlayer(GameColor.White, checkboardDisplay);
-        // whitePlayer = new BotPlayer(GameColor.White, 5);
-        blackPlayer = new BotPlayer(GameColor.Black, 8);
+        if (LowerPawnsColor == GameColor.White) {
+            whitePlayer = new HumanPlayer(GameColor.White, checkboardDisplay);
+            blackPlayer = new BotPlayer(GameColor.Black, Menu.Instance.Depth);
+        } else {
+            whitePlayer = new BotPlayer(GameColor.White, Menu.Instance.Depth);
+            blackPlayer = new HumanPlayer(GameColor.Black, checkboardDisplay);
+        }
 
         whitePlayer.SingleMoveMadeEvent += OnPlayerSingleMoveMade;
         whitePlayer.TurnFinishedEvent += OnTurnFinished;
@@ -38,14 +42,6 @@ class Gameplay : MonoBehaviour {
         blackPlayer.TurnFinishedEvent += OnTurnFinished;
 
         whitePlayer.MoveInit();
-
-        /*var whiteKing = Checkboard[0, 2];
-        whiteKing.IsKing = true;
-        checkboardDisplay.GetPawnDisplay(whiteKing.Position).SetKing();
-
-        var blackKing = Checkboard[7, 5];
-        blackKing.IsKing = true;
-        checkboardDisplay.GetPawnDisplay(blackKing.Position).SetKing();*/
     }
 
     private void Update() {
@@ -73,6 +69,12 @@ class Gameplay : MonoBehaviour {
     private IEnumerator OnTurnFinished() {
         while (IsPawnInMove)
             yield return null;
+
+        if (Checkboard.IsTerminal(out var winColor)) {
+            Debug.Log($"{winColor} won!");
+            Menu.Instance?.DisplayWin(winColor);
+            yield break;
+        }
 
         if (TurnColor == GameColor.White) {
             TurnColor = GameColor.Black;
