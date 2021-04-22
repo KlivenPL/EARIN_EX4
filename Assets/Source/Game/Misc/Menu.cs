@@ -11,6 +11,7 @@ class Menu : MonoBehaviour {
     [SerializeField] private Button playBtn;
     [SerializeField] private Button fakePlayBtn;
     [SerializeField] private Button exitButton;
+    [SerializeField] private Button quitButton;
     [SerializeField] private Button restartButton;
     [SerializeField] private RectTransform mainMenu;
     [SerializeField] private RectTransform playMenu;
@@ -37,6 +38,7 @@ class Menu : MonoBehaviour {
         playBtn.onClick.AddListener(() => OnPlayButtonClick());
         exitButton.onClick.AddListener(() => OnExitButtonClick());
         restartButton.onClick.AddListener(() => OnRestartButtonClick());
+        quitButton.onClick.AddListener(() => OnQuitButtonClick());
     }
 
     private void Update() {
@@ -77,5 +79,9 @@ class Menu : MonoBehaviour {
         winTxt.text = $"{color} wins!";
         winTxt.gameObject.SetActive(true);
         escMenu.gameObject.SetActive(true);
+    }
+
+    public void OnQuitButtonClick() {
+        Application.Quit();
     }
 }
