@@ -54,8 +54,7 @@ class Gameplay : MonoBehaviour {
     }
 
     private void OnPlayerSingleMoveMade(object sender, Move move) {
-        checkboardDisplay.MakeMove(move);
-        Checkboard.MakeMove(move);
+        checkboardDisplay.MakeMove(move, callback: () => Checkboard.MakeMove(move));
     }
 
     private void OnTurnFinished(object sender, System.EventArgs e) {

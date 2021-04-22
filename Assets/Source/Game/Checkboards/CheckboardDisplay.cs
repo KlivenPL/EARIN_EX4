@@ -1,6 +1,7 @@
 ﻿using Assets.Source.Game.Gameplays;
 using Assets.Source.Game.Misc;
 using Assets.Source.Game.Pawns;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -29,11 +30,22 @@ class CheckboardDisplay : MonoBehaviour {
         return pawns.Single(p => p.Pawn.Position == position);
     }
 
-    public void MakeMove(Move move) {
+    public void MakeMove(Move move, System.Action callback) {
+        StartCoroutine(MakeMoveCoroutine(move, callback));
+    }
+
+    IEnumerator MakeMoveCoroutine(Move move, System.Action callback) {
         var pawnDisplay = GetPawnDisplay(move.PawnPos);
         var pawn = pawnDisplay.Pawn;
 
-        pawnDisplay.transform.position = move.NewPos.ToVector2();
+        var newPos = move.NewPos.ToVector2();
+
+        while (Vector2.Distance(pawnDisplay.transform.position, newPos) > 0.1f) {
+            pawnDisplay.transform.position = Vector2.MoveTowards(pawnDisplay.transform.position, newPos, 3f * Time.deltaTime);
+            yield return new WaitForEndOfFrame();
+        }
+
+        pawnDisplay.transform.position = newPos;
 
         if (move.NewPos.y == 0 && Gameplay.Instance.LowerPawnsColor != pawn.Color ||
                 move.NewPos.y == 7 && Gameplay.Instance.LowerPawnsColor == pawn.Color) {
@@ -46,6 +58,8 @@ class CheckboardDisplay : MonoBehaviour {
             pawns.Remove(takenPawn);
             takenPawn.TakeDown();
         }
+
+        callback();
     }
 
     public IEnumerable<Pawn> Init() {

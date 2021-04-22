@@ -1,8 +1,10 @@
 ﻿using Assets.Source.Game.Misc;
+using Assets.Source.Game.Pawns;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Assets.Source.Game.Gameplays {
     class BotPlayer : IPlayer {
@@ -25,28 +27,26 @@ namespace Assets.Source.Game.Gameplays {
         IEnumerator Move() {
             var state = new State { Checkboard = Gameplay.Instance.Checkboard };
             bool isTake;
+            Pawn movingPawn;
             do {
-                yield return null;// new WaitForSeconds(0.5f);
+                // yield return null;// new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(1f);
                 var availableMoves = new List<(Move move, int heuristic)>();
                 var alfaBeta = AlfaBeta(state, Depth, int.MinValue, int.MaxValue, true, ref availableMoves);
 
                 var move = availableMoves
-                    .Where(m => m.heuristic == alfaBeta)
-                    .First().move;
+                    .First(m => m.heuristic == alfaBeta).move;
 
                 isTake = move.IsATake;
+                movingPawn = Gameplay.Instance.Checkboard[move.PawnPos];
                 SingleMoveMadeEvent(this, move);
-            } while (isTake && HasAnyTakes());
+            } while (isTake && HasAnyTakes(movingPawn));
 
             TurnFinishedEvent(this, null);
         }
 
-        private bool HasAnyTakes() {
-            var myPawnTakeMoves = Gameplay.Instance.Checkboard.GetPawns(pawnColor)
-                .SelectMany(p => p.GetAvailableMoves(Gameplay.Instance.Checkboard)?
-                    .Where(m => m.IsATake) ?? Enumerable.Empty<Move>())
-                .Any();
-
+        private bool HasAnyTakes(Pawn pawn) {
+            var myPawnTakeMoves = pawn.GetAvailableMoves(Gameplay.Instance.Checkboard)?.Where(m => m != null && m.IsATake)?.Any() == true;
             return myPawnTakeMoves;
         }
 
@@ -59,17 +59,19 @@ namespace Assets.Source.Game.Gameplays {
                 var heuristic = state.Checkboard.GetHeuristic(pawnColor);
                 return heuristic;
             }
-
-            var successors = state.Checkboard.GetSuccessors(maxMove ? pawnColor : (pawnColor == GameColor.Black ? GameColor.White : GameColor.White), state.LastMove).ToList();
+            var currentMovingColor = maxMove ? pawnColor : (pawnColor == GameColor.Black ? GameColor.White : GameColor.Black);
+            var successors = state.Checkboard.GetSuccessors(currentMovingColor, state).ToList();
 
             if (maxMove) {
                 var value = int.MinValue;
                 foreach (var successor in successors) {
-                    value = AlfaBeta(successor, depth - 1, alfa, beta, false, ref moves);
+                    value = Math.Max(value, AlfaBeta(successor, depth - 1, alfa, beta, maxMove: successor.IsInTakeStrike, ref moves));
+                    alfa = Math.Max(alfa, value);
+
                     if (depth == Depth) {
                         moves.Add((successor.LastMove, value));
                     }
-                    alfa = Math.Max(alfa, value);
+
                     if (alfa >= beta) {
                         break;
                     }
@@ -79,11 +81,13 @@ namespace Assets.Source.Game.Gameplays {
             } else {
                 var value = int.MaxValue;
                 foreach (var successor in successors) {
-                    value = AlfaBeta(successor, depth - 1, alfa, beta, true, ref moves);
+                    value = Math.Min(value, AlfaBeta(successor, depth - 1, alfa, beta, maxMove: !successor.IsInTakeStrike, ref moves));
+                    beta = Math.Min(beta, value);
+
                     if (depth == Depth) {
                         moves.Add((successor.LastMove, value));
                     }
-                    beta = Math.Min(beta, value);
+
                     if (beta <= alfa) {
                         break;
                     }

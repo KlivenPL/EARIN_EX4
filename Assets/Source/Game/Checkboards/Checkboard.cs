@@ -87,51 +87,46 @@ namespace Assets.Source.Game.Checkboards {
             }
         }
 
-        public IEnumerable<State> GetSuccessors(GameColor playerColor/*, Move previousMove*/) {
+        public IEnumerable<State> GetSuccessors(GameColor playerColor, State previousState) {
             var moves = GetPawns(playerColor).SelectMany(p => p.GetAvailableMoves(this) ?? Enumerable.Empty<Move>());
 
-            /* if (previousMove?.IsATake == true) {
-                 moves = moves.Where(m => m.PawnPos == previousMove.NewPos);
-             }*/
+            if (previousState.IsInTakeStrike) {
+                moves = moves.Where(m => m.PawnPos == previousState.LastMove.NewPos);
+            }
 
             if (moves.Any(m => m.IsATake)) {
                 moves = moves.Where(m => m.IsATake);
             }
 
             foreach (var move in moves) {
-                while (true) {
-                    var copiedCheckboard = DeepCopy(this);
-                    copiedCheckboard.MakeMove(move);
+                var copiedCheckboard = DeepCopy(this);
+                copiedCheckboard.MakeMove(move);
+                bool isInTakeStrike = move.IsATake && copiedCheckboard[move.NewPos].GetAvailableMoves(copiedCheckboard)?.Any(m => m.IsATake) == true;
 
-                    var myPawn = copiedCheckboard[move.NewPos];
+                yield return new State { Checkboard = copiedCheckboard, LastMove = move, IsInTakeStrike = isInTakeStrike };
 
-                    var availableTakes = GetAvailableTakes(myPawn, copiedCheckboard);
+                //  var takes = new List<(Move, Checkboard)>();
+                //EvaluateTakes(copiedCheckboard, copiedCheckboard[move.NewPos], move, ref takes);
 
-                    if (availableTakes?.Any() == true) {
-
-                    }
-                }
-                // jezeli tu jest bicie dalej, to wykonuj
-                yield return new State { Checkboard = copiedCheckboard, LastMove = move };
+                //foreach (var evaluatedMoves in takes) {
+                //   }
             }
-
-
         }
 
-        private IEnumerable<Move> FindAllTakes(Checkboard checkboard, Pawn pawn) {
-            var availableTakes = GetAvailableTakes(checkboard, pawn);
-            if (availableTakes.Any()) {
-                foreach (var availableTake in availableTakes) {
-                    var copiedCheckboard = DeepCopy(this);
+        /* private void EvaluateTakes(Checkboard checkboard, Pawn pawn, Move prevMove, ref List<(Move, Checkboard)> moves) {
+             var availableTakes = GetAvailableTakes(checkboard, pawn);
+             if (availableTakes.Any()) {
+                 foreach (var availableTake in availableTakes) {
+                     var copiedCheckboard = DeepCopy(checkboard);
+                     copiedCheckboard.MakeMove(availableTake);
+                     EvaluateTakes(copiedCheckboard, copiedCheckboard[availableTake.NewPos], availableTake, ref moves);
+                 }
+             } else {
+                 moves.Add((prevMove, checkboard));
+             }
 
-                }
-            } else {
-
-            }
-
-
-            IEnumerable<Move> GetAvailableTakes(Checkboard checkboard, Pawn pawn) => pawn.GetAvailableMoves(checkboard)?.Where(m => m.IsATake) ?? Enumerable.Empty<Move>();
-        }
+             IEnumerable<Move> GetAvailableTakes(Checkboard checkboard, Pawn pawn) => pawn.GetAvailableMoves(checkboard)?.Where(m => m.IsATake) ?? Enumerable.Empty<Move>();
+         }*/
 
         public bool IsTerminal(out GameColor winColor) {
             winColor = default;
