@@ -1,6 +1,7 @@
 using Assets.Source.Game.Checkboards;
 using Assets.Source.Game.Gameplays;
 using Assets.Source.Game.Misc;
+using System.Collections;
 using UnityEngine;
 class Gameplay : MonoBehaviour {
     [SerializeField] private CheckboardDisplay checkboardDisplay;
@@ -13,6 +14,8 @@ class Gameplay : MonoBehaviour {
     private IPlayer whitePlayer;
     private IPlayer blackPlayer;
 
+    public bool IsPawnInMove { get; set; }
+
     void Start() {
         InitalizeGame();
     }
@@ -24,9 +27,9 @@ class Gameplay : MonoBehaviour {
         var pawns = checkboardDisplay.Init();
         Checkboard = new Checkboard(pawns);
 
-        //whitePlayer = new HumanPlayer(GameColor.White, checkboardDisplay);
-        whitePlayer = new BotPlayer(GameColor.White, 6);
-        blackPlayer = new BotPlayer(GameColor.Black, 4);
+        whitePlayer = new HumanPlayer(GameColor.White, checkboardDisplay);
+        // whitePlayer = new BotPlayer(GameColor.White, 5);
+        blackPlayer = new BotPlayer(GameColor.Black, 8);
 
         whitePlayer.SingleMoveMadeEvent += OnPlayerSingleMoveMade;
         whitePlayer.TurnFinishedEvent += OnTurnFinished;
@@ -46,18 +49,31 @@ class Gameplay : MonoBehaviour {
     }
 
     private void Update() {
-        if (TurnColor == GameColor.White) {
-            whitePlayer.MoveUpdate();
-        } else {
-            blackPlayer.MoveUpdate();
+        if (!IsPawnInMove) {
+            if (TurnColor == GameColor.White) {
+                whitePlayer.MoveUpdate();
+            } else {
+                blackPlayer.MoveUpdate();
+            }
         }
     }
 
     private void OnPlayerSingleMoveMade(object sender, Move move) {
-        checkboardDisplay.MakeMove(move, callback: () => Checkboard.MakeMove(move));
+        IsPawnInMove = true;
+        checkboardDisplay.MakeMove(move, callback: () => {
+            Checkboard.MakeMove(move);
+            IsPawnInMove = false;
+        });
     }
 
     private void OnTurnFinished(object sender, System.EventArgs e) {
+        StartCoroutine(OnTurnFinished());
+    }
+
+    private IEnumerator OnTurnFinished() {
+        while (IsPawnInMove)
+            yield return null;
+
         if (TurnColor == GameColor.White) {
             TurnColor = GameColor.Black;
             blackPlayer.MoveInit();

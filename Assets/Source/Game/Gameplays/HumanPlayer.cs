@@ -1,6 +1,7 @@
 ﻿using Assets.Source.Game.Checkboards;
 using Assets.Source.Game.Misc;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -34,6 +35,9 @@ namespace Assets.Source.Game.Gameplays {
         }
 
         public void MoveUpdate() {
+            if (Gameplay.Instance.IsPawnInMove)
+                return;
+
             if (Input.GetButtonUp("Fire1")) {
                 if (CheckIfPawnClicked(out var pawnDisplay) && pawnColor == pawnDisplay.Pawn.Color && !isInTakeStrike) {
                     bool pawnAlreadySelected = false;
@@ -54,12 +58,12 @@ namespace Assets.Source.Game.Gameplays {
                     if (!isInTakeStrike)
                         DeselectPawnAndFields(pawnDisplay);
 
-                    TryMakeMove(availableMoves, clickWorldPos, selectedPawnCopy);
+                    Gameplay.Instance.StartCoroutine(TryMakeMove(availableMoves, clickWorldPos, selectedPawnCopy));
                 }
             }
         }
 
-        private IEnumerable<Move> TryMakeMove(IEnumerable<Move> availableMoves, Vector2Int clickWorldPos, PawnDisplay selectedPawnCopy) {
+        private IEnumerator TryMakeMove(IEnumerable<Move> availableMoves, Vector2Int clickWorldPos, PawnDisplay selectedPawnCopy) {
             var move = availableMoves.FirstOrDefault(m => m.NewPos == clickWorldPos);
             if (move != null) {
 
@@ -68,6 +72,9 @@ namespace Assets.Source.Game.Gameplays {
 
                 startingForcedTakes = null;
                 SingleMoveMadeEvent(this, move);
+
+                while (Gameplay.Instance.IsPawnInMove)
+                    yield return null;
 
                 if (move.IsATake) {
                     availableMoves = GetAvailableMoves(selectedPawnCopy);
@@ -85,8 +92,6 @@ namespace Assets.Source.Game.Gameplays {
                     isInTakeStrike = false;
                 }
             }
-
-            return availableMoves;
         }
 
         private IEnumerable<Move> GetAllMyTakes() {

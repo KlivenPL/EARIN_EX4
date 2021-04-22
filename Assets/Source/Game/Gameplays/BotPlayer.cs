@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Assets.Source.Game.Gameplays {
     class BotPlayer : IPlayer {
@@ -27,19 +26,31 @@ namespace Assets.Source.Game.Gameplays {
         IEnumerator Move() {
             var state = new State { Checkboard = Gameplay.Instance.Checkboard };
             bool isTake;
-            Pawn movingPawn;
+            Pawn movingPawn = null;
+
             do {
-                // yield return null;// new WaitForSeconds(0.5f);
-                yield return new WaitForSeconds(1f);
+                yield return null;
+                //yield return new WaitForSeconds(1f);
                 var availableMoves = new List<(Move move, int heuristic)>();
                 var alfaBeta = AlfaBeta(state, Depth, int.MinValue, int.MaxValue, true, ref availableMoves);
+                Move move = null;
 
-                var move = availableMoves
-                    .First(m => m.heuristic == alfaBeta).move;
+                var moves = availableMoves
+                    .Where(m => m.heuristic == alfaBeta);
+
+                if (movingPawn != null) {
+                    move = moves.First(m => m.move.PawnPos == movingPawn.Position).move;
+                } else {
+                    move = moves.First().move;
+                }
 
                 isTake = move.IsATake;
                 movingPawn = Gameplay.Instance.Checkboard[move.PawnPos];
                 SingleMoveMadeEvent(this, move);
+
+                while (Gameplay.Instance.IsPawnInMove)
+                    yield return null;
+
             } while (isTake && HasAnyTakes(movingPawn));
 
             TurnFinishedEvent(this, null);
