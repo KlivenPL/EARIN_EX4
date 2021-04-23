@@ -31,7 +31,7 @@ namespace Assets.Source.Game.Gameplays {
             do {
                 var availableMoves = new List<(Move move, int heuristic)>();
                 yield return new WaitForSeconds(0.25f);
-                var alfaBeta = AlfaBeta(state, depth, int.MinValue, int.MaxValue, true, ref availableMoves);
+                var alfaBeta = AlfaBeta(state, depth, int.MinValue, int.MaxValue, true, availableMoves);
                 Move move = null;
 
                 var moves = availableMoves
@@ -66,41 +66,51 @@ namespace Assets.Source.Game.Gameplays {
             return;
         }
 
-        int AlfaBeta(State state, int depth, int alfa, int beta, bool maxMove, ref List<(Move move, int heuristic)> moves) {
-            if (state.Checkboard.IsTerminal(out _) || depth == 0) {
-                var heuristic = state.Checkboard.GetHeuristic(pawnColor);
+        //Core algorithm: Minimax with alhpa-beta pruning
+        int AlfaBeta(State state, int depth, int alfa, int beta, bool maxMove, List<(Move move, int heuristic)> moves) { //regular algorithm parameters plus the list of moves in the initial depth passed as a reference
+            if (state.Checkboard.IsTerminal(out _) || depth == 0) { //check for terminal state of the checkboard or depth reached
+                var heuristic = state.Checkboard.GetHeuristic(pawnColor); //get herustic of the leaf
                 return heuristic;
             }
-            var currentMovingColor = maxMove ? pawnColor : (pawnColor == GameColor.Black ? GameColor.White : GameColor.Black);
-            var successors = state.Checkboard.GetSuccessors(currentMovingColor, state).ToList();
+            var currentMovingColor = maxMove ? pawnColor : (pawnColor == GameColor.Black ? GameColor.White : GameColor.Black); //switch between maximizing and minimizing player
+            var successors = state.Checkboard.GetSuccessors(currentMovingColor, state).ToList(); //get the list of all potential checkboard states after a given player makes move
 
-            if (maxMove) {
-                var value = int.MinValue;
-                foreach (var successor in successors) {
-                    value = Math.Max(value, AlfaBeta(successor, depth - 1, alfa, beta, maxMove: successor.IsInTakeStrike, ref moves));
+            if (maxMove)
+            {
+                var value = int.MinValue; //assign conventional minus infinity to a variable
+                foreach (var successor in successors)
+                {
+                    value = Math.Max(value, AlfaBeta(successor, depth - 1, alfa, beta, maxMove: successor.IsInTakeStrike, moves));
                     alfa = Math.Max(alfa, value);
 
-                    if (depth == this.depth) {
-                        moves.Add((successor.LastMove, value));
+                    if (depth == this.depth)
+                    {
+                        moves.Add((successor.LastMove, value)); //for the initial depth, so the first (from the root) level we save the moves, so after the algorithm returns the best heuristic, we know which path to choose
                     }
 
-                    if (alfa >= beta) {
+                    if (alfa >= beta)
+                    {
                         break;
                     }
                 }
 
                 return value;
-            } else {
+            }
+            else
+            {
                 var value = int.MaxValue;
-                foreach (var successor in successors) {
-                    value = Math.Min(value, AlfaBeta(successor, depth - 1, alfa, beta, maxMove: !successor.IsInTakeStrike, ref moves));
+                foreach (var successor in successors)
+                {
+                    value = Math.Min(value, AlfaBeta(successor, depth - 1, alfa, beta, maxMove: !successor.IsInTakeStrike, moves));
                     beta = Math.Min(beta, value);
 
-                    if (depth == this.depth) {
+                    if (depth == this.depth)
+                    {
                         moves.Add((successor.LastMove, value));
                     }
 
-                    if (beta <= alfa) {
+                    if (beta <= alfa)
+                    {
                         break;
                     }
                 }
