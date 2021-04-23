@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// Operations related to rendering the checkerboard
 class CheckboardDisplay : MonoBehaviour {
     [SerializeField] CheckboardGenerator checkboardGenerator;
 
@@ -43,7 +44,7 @@ class CheckboardDisplay : MonoBehaviour {
 
         pawnDisplay.MoveToFront();
 
-        var movementCoroutine = MovementCoroutines.KMove(pawnDisplay.transform.position, newPos, 0.5f);
+        var movementCoroutine = MovementCoroutines.SmoothlyMove(pawnDisplay.transform.position, newPos, 0.5f);
 
         foreach (var pos in movementCoroutine) {
             pawnDisplay.transform.position = pos;

@@ -3,6 +3,8 @@ using Assets.Source.Game.Gameplays;
 using Assets.Source.Game.Misc;
 using System.Collections;
 using UnityEngine;
+
+// Class that controls turns and initalizes the game
 class Gameplay : MonoBehaviour {
     [SerializeField] private CheckboardDisplay checkboardDisplay;
     private static Gameplay instance;

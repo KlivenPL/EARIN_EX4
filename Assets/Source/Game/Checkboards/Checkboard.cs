@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine;
 
 namespace Assets.Source.Game.Checkboards {
+    // Operations related to checkerboard
     class Checkboard {
         private readonly Pawn[,] pawns;
 
@@ -88,25 +89,32 @@ namespace Assets.Source.Game.Checkboards {
         }
 
         public IEnumerable<State> GetSuccessors(GameColor playerColor, State previousState) {
+            // Get all possible moves of given player
             var moves = GetPawns(playerColor).SelectMany(p => p.GetAvailableMoves(this) ?? Enumerable.Empty<Move>());
 
+            // If in strike - then take only previous pawn's moves
             if (previousState.IsInTakeStrike) {
                 moves = moves.Where(m => m.PawnPos == previousState.LastMove.NewPos);
             }
 
+            // When any take available - then force takes.
             if (moves.Any(m => m.IsATake)) {
                 moves = moves.Where(m => m.IsATake);
             }
 
             foreach (var move in moves) {
+                // Simulate game
                 var copiedCheckboard = DeepCopy(this);
                 copiedCheckboard.MakeMove(move);
+
+                // Check for strike
                 bool isInTakeStrike = move.IsATake && copiedCheckboard[move.NewPos].GetAvailableMoves(copiedCheckboard)?.Any(m => m.IsATake) == true;
 
                 yield return new State { Checkboard = copiedCheckboard, LastMove = move, IsInTakeStrike = isInTakeStrike };
             }
         }
 
+        // Checks for wins
         public bool IsTerminal(out GameColor winColor) {
             winColor = default;
 
@@ -123,13 +131,14 @@ namespace Assets.Source.Game.Checkboards {
             return false;
         }
 
+        // Heuristics - most important for us is difference between pawns. Then we take kings count into consideration.
         public int GetHeuristic(GameColor playerColor) {
             var oppositeColor = playerColor == GameColor.Black ? GameColor.White : GameColor.Black;
             var myPawns = GetPawns(playerColor);
             var pawnsDiff = myPawns.Count() - GetPawns(oppositeColor).Count();
             var kings = myPawns.Where(p => p.IsKing).Count();
 
-            return pawnsDiff + kings * 4;
+            return pawnsDiff + kings * 2;
         }
     }
 }

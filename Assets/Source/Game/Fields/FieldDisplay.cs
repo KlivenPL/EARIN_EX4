@@ -1,6 +1,7 @@
 ﻿using Assets.Source.Game.Misc;
 using UnityEngine;
 
+// Operations related to field rendering
 class FieldDisplay : MonoBehaviour {
     [SerializeField] private SpriteRenderer sr;
     private GameColor fieldColor;

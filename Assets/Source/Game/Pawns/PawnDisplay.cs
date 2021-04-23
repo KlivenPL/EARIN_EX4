@@ -5,32 +5,28 @@ using UnityEngine;
 class PawnDisplay : MonoBehaviour {
     [SerializeField] private SpriteRenderer sr;
 
-    private GameColor color;
-    private bool isKing;
-
-    public bool IsKing => isKing;
-
-    public void Select() {
-        sr.color = color.ToPawnColor() - (Color.blue / 4f);
-    }
-
-    public void Deselect() {
-        sr.color = color.ToPawnColor();
-    }
+    private GameColor pawnColor;
 
     public Pawn Init(GameColor pawnColor, Vector2 position) {
-        color = pawnColor;
+        this.pawnColor = pawnColor;
         sr.color = pawnColor.ToPawnColor();
         transform.position = position;
 
         return new Pawn(pawnColor, new Vector2Int((int)position.x, (int)position.y));
     }
 
+    public void Select() {
+        sr.color = pawnColor.ToPawnColor() - (Color.blue / 4f);
+    }
+
+    public void Deselect() {
+        sr.color = pawnColor.ToPawnColor();
+    }
+
     public Pawn Pawn => Gameplay.Instance.Checkboard[(int)transform.position.x, (int)transform.position.y];
 
     public void SetKing() {
         sr.transform.Find("Crown").gameObject.SetActive(true);
-        isKing = true;
     }
 
     public void TakeDown() {

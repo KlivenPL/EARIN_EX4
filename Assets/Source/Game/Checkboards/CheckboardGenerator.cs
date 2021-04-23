@@ -3,7 +3,7 @@ using Assets.Source.Game.Pawns;
 using System.Collections.Generic;
 using UnityEngine;
 
-
+// Generating the checkerboard
 class CheckboardGenerator : MonoBehaviour {
 
     [SerializeField] private FieldDisplay fieldPrefab;
