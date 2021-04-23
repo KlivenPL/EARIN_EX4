@@ -4,7 +4,7 @@ Created in Unity and C# by Oskar Hącel & Marcin Lisowski
 
 Politechnika Warszawska, 04.2021
 
-## Instalation
+## Installation
 1. Download release package [here](https://github.com/KlivenPL/EARIN_EX4/releases) or build project yourself
 1. Unzip ```.zip``` file with Windows extracting tool, ```7Zip``` or similar
 2. Run ```EARIN_EX4_CHECKERS.exe``` to play the game
